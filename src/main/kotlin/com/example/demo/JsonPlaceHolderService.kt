@@ -1,5 +1,6 @@
 package com.example.demo
 
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
@@ -23,6 +24,15 @@ class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder): Jso
     }
 
     override fun savePost(jsonPlaceHolder: JsonPlaceHolder): JsonPlaceHolder? {
-        TODO("Not yet implemented")
+        val saved = restClientBuilder
+            .build()
+            .post()
+            .uri("https://jsonplaceholder.org/posts")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(jsonPlaceHolder)
+            .retrieve()
+            .body<JsonPlaceHolder>()
+
+        return saved
     }
 }
