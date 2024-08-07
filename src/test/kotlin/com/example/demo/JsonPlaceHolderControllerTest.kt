@@ -1,21 +1,34 @@
 package com.example.demo
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.stereotype.Service
+import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class JsonPlaceHolderControllerTest {
+    lateinit var mockJsonPlaceHolderService: JsonPlaceHolderServiceImpl
+    lateinit var mockMvc: MockMvc
+    val objectMapper = ObjectMapper()
 
-    val mockMvc = MockMvcBuilders.standaloneSetup(JsonPlaceHolderController()).build()
+    @BeforeEach
+    fun setup() {
+        mockJsonPlaceHolderService = mockk()
+        mockMvc = MockMvcBuilders.standaloneSetup(JsonPlaceHolderController(mockJsonPlaceHolderService)).build()
+    }
 
     @Test
     fun `should return 200 for GET request`(){
-
+        every { mockJsonPlaceHolderService.getAll() } returns null
         mockMvc.perform(get("/api/v1/posts"))
             .andExpect(status().isOk)
-
     }
 
     @Test
@@ -39,5 +52,16 @@ class JsonPlaceHolderControllerTest {
 
         mockMvc.perform(get("/api/v1/posts"))
             .andExpect(content().json(expectedResponse))
+    }
+
+    @Test
+    fun `should invoke JsonPlaceHolderService getAll method` () {
+        //arrange
+
+        every { mockJsonPlaceHolderService.getAll() } returns null
+        //act
+        mockMvc.perform(get("/api/v1/posts"))
+        //assert
+        verify (exactly = 1) { mockJsonPlaceHolderService.getAll() }
     }
 }
