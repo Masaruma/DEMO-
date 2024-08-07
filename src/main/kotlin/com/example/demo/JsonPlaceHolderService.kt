@@ -6,6 +6,7 @@ import org.springframework.web.client.body
 
 interface JsonPlaceHolderService {
     fun getAll() : List<JsonPlaceHolder>?
+    fun savePost(jsonPlaceHolder: JsonPlaceHolder): JsonPlaceHolder?
 }
 
 @Service
@@ -19,5 +20,9 @@ class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder): Jso
             .body<List<JsonPlaceHolder>>()
 
         return jsonPlaceHolderResponse
+    }
+
+    override fun savePost(jsonPlaceHolder: JsonPlaceHolder): JsonPlaceHolder? {
+        TODO("Not yet implemented")
     }
 }
