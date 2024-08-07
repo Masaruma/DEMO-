@@ -4,9 +4,13 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 
+interface JsonPlaceHolderService {
+    fun getAll() : List<JsonPlaceHolder>?
+}
+
 @Service
-class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder) {
-    fun getAll(): List<JsonPlaceHolder>? {
+class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder): JsonPlaceHolderService {
+    override fun getAll(): List<JsonPlaceHolder>? {
         val jsonPlaceHolderResponse = restClientBuilder
             .build()
             .get()
