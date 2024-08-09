@@ -1,35 +1,38 @@
 package com.example.demo
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
-import org.springframework.web.client.*
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.body
 
 @Component
 class JsonPlaceHolderClient(val restClient: RestClient) {
-    fun getAll(): List<JsonPlaceHolder>? {
-        val jsonPlaceHolderResponse = restClient
+    fun getAll(): List<JsonPlaceHolder>? =
+         restClient
             .get()
-            .uri("https://jsonplaceholder.org/posts")
+            .uri("/posts")
             .retrieve()
             .body<List<JsonPlaceHolder>>()
 
-        return jsonPlaceHolderResponse
-    }
 
-    fun savePost(jsonPlaceHolder: JsonPlaceHolder) {
+    fun savePost(jsonPlaceHolder: JsonPlaceHolder) : JsonPlaceHolder? =
         restClient
             .post()
-            .uri("https://jsonplaceholder.org/posts")
+            .uri("/posts")
             .body(jsonPlaceHolder)
             .retrieve()
-    }
+            .body(JsonPlaceHolder::class.java)
+
 }
 
 @Configuration
 class RestClientConfig {
+    @Value("\${baseUrl}")
+    lateinit var baseUrl : String
     @Bean
     fun restClient(builder: RestClient.Builder):RestClient {
-        return builder.build()
+        return builder.baseUrl(baseUrl).build()
     }
 }

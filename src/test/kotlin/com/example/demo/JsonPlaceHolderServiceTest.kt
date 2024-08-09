@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
-import org.springframework.web.client.toEntity
-import java.awt.PageAttributes
 import kotlin.test.assertEquals
 
 class JsonPlaceHolderServiceTest {
@@ -20,9 +18,8 @@ class JsonPlaceHolderServiceTest {
 
     @BeforeEach
     fun setup() {
-        mockRestClientBuilder = mockk()
         mockJsonPlaceHolderClient = mockk(relaxed = true)
-        jsonPlaceHolderService = JsonPlaceHolderServiceImpl(mockRestClientBuilder, mockJsonPlaceHolderClient)
+        jsonPlaceHolderService = JsonPlaceHolderServiceImpl(mockJsonPlaceHolderClient)
     }
 
 
@@ -82,17 +79,12 @@ class JsonPlaceHolderServiceTest {
             updatedAt = "14/03/2023 17:22:20",
             userId = 1
         )
-        every { mockRestClientBuilder.build().post()
-            .uri("https://jsonplaceholder.org/posts")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .retrieve()
-            .body<JsonPlaceHolder>()} returns requestBody
+        every { mockJsonPlaceHolderClient.savePost(requestBody) } returns requestBody
 
         val postResponse = jsonPlaceHolderService.savePost(requestBody)
 
         assertEquals(postResponse, requestBody)
-        verify(exactly = 1) { mockRestClientBuilder.build().post().uri("https://jsonplaceholder.org/posts")}
+        verify(exactly = 1) { mockJsonPlaceHolderClient.savePost(requestBody)}
     }
 }
 

@@ -1,0 +1,11 @@
+# Sample compose file
+services:
+  wiremock:
+    image: "wiremock/wiremock:latest"
+    container_name: JsonPlaceHolder
+    ports:
+      - 8888:8080
+    volumes:
+      - ./src/test/resources/wiremock/files:/home/wiremock/__files
+      - ./src/test/resources/wiremock/mappings:/home/wiremock/mappings
+    entrypoint: ["/docker-entrypoint.sh", "--global-response-templating", "--disable-gzip", "--verbose"]
