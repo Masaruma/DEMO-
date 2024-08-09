@@ -123,5 +123,4 @@ class JsonPlaceHolderControllerTest {
             .andExpect(content().json(objectMapper.writeValueAsString(jsonPlaceHolder)))
         verify(exactly = 1) { mockJsonPlaceHolderService.savePost(jsonPlaceHolder) }
     }
-
 }

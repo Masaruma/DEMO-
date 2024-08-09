@@ -11,16 +11,9 @@ interface JsonPlaceHolderService {
 }
 
 @Service
-class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder): JsonPlaceHolderService {
+class JsonPlaceHolderServiceImpl(val restClientBuilder: RestClient.Builder, val jsonPlaceHolderClient: JsonPlaceHolderClient): JsonPlaceHolderService {
     override fun getAll(): List<JsonPlaceHolder>? {
-        val jsonPlaceHolderResponse = restClientBuilder
-            .build()
-            .get()
-            .uri("https://jsonplaceholder.org/posts")
-            .retrieve()
-            .body<List<JsonPlaceHolder>>()
-
-        return jsonPlaceHolderResponse
+        return jsonPlaceHolderClient.getAll()
     }
 
     override fun savePost(jsonPlaceHolder: JsonPlaceHolder): JsonPlaceHolder? {

@@ -1,49 +1,42 @@
 package com.example.demo
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest
+import org.springframework.context.annotation.Import
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.body
-import org.springframework.web.client.toEntity
-import java.awt.PageAttributes
-import kotlin.test.assertEquals
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.*
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
-class JsonPlaceHolderServiceTest {
 
-    lateinit var mockRestClientBuilder: RestClient.Builder
-    lateinit var mockJsonPlaceHolderClient: JsonPlaceHolderClient
-    lateinit var jsonPlaceHolderService: JsonPlaceHolderServiceImpl
+@RestClientTest(JsonPlaceHolderClient::class)
+@Import(RestClientConfig::class)
+class JsonPlaceHolderClientTest {
+
+    val objectMapper = ObjectMapper()
+    @Autowired
+    private lateinit var mockServer: MockRestServiceServer
+
+    @Autowired
+    private lateinit var jsonPlaceHolderClient: JsonPlaceHolderClient
 
     @BeforeEach
     fun setup() {
-        mockRestClientBuilder = mockk()
-        mockJsonPlaceHolderClient = mockk(relaxed = true)
-        jsonPlaceHolderService = JsonPlaceHolderServiceImpl(mockRestClientBuilder, mockJsonPlaceHolderClient)
+        mockServer.reset()
     }
 
 
     @Test
-    fun `should invoke getAll at JsonPlaceHolderService`() {
-        // arrange
-//        every {
-//            mockJsonPlaceHolderClient.getAll()
-//        } returns null
+    fun `should call mock server return fetched posts at GET Request`() {
 
-        // act
-        jsonPlaceHolderService.getAll()
-
-        // assert
-        verify(exactly = 1) { mockJsonPlaceHolderClient.getAll() }
-    }
-
-    @Test
-    fun `should return List of JsonPlaceHolder when call getAll method`() {
-        val expectedResponse =  listOf(JsonPlaceHolder(
-            id = 1,
+        val expected = listOf(JsonPlaceHolder(
+            id = 2,
             slug = "lorem-ipsum",
             url = "https://jsonplaceholder.org/posts/lorem-ipsum",
             title = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
@@ -57,18 +50,36 @@ class JsonPlaceHolderServiceTest {
             userId = 1
         ))
 
-        every {
-            mockJsonPlaceHolderClient.getAll()
-        } returns expectedResponse
+        mockServer
+            .expect(requestTo("https://jsonplaceholder.org/posts"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(objectMapper.writeValueAsString(expected), MediaType.APPLICATION_JSON))
 
-        val jsonPlaceHolder = jsonPlaceHolderService.getAll()
+        val allPosts = jsonPlaceHolderClient.getAll()
 
-        assertEquals(jsonPlaceHolder, expectedResponse)
+        mockServer.verify()
+
+        assertThat(allPosts).isEqualTo(expected)
     }
 
     @Test
-    fun `should invoke post method at JsonPlaceHolderService and return response` () {
-        val requestBody = JsonPlaceHolder(
+    fun `should call mock server at Post Request`() {
+        mockServer
+            .expect(requestTo("https://jsonplaceholder.org/posts"))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess())
+
+        val sampleJsonHolder = JsonPlaceHolderBuilder().build()
+        jsonPlaceHolderClient.savePost(sampleJsonHolder)
+
+        mockServer.verify()
+    }
+
+
+    @Test
+    fun `should call mock server with post data given through savePort argument`() {
+
+        val expected = JsonPlaceHolder(
             id = 2,
             slug = "lorem-ipsum",
             url = "https://jsonplaceholder.org/posts/lorem-ipsum",
@@ -82,17 +93,14 @@ class JsonPlaceHolderServiceTest {
             updatedAt = "14/03/2023 17:22:20",
             userId = 1
         )
-        every { mockRestClientBuilder.build().post()
-            .uri("https://jsonplaceholder.org/posts")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(requestBody)
-            .retrieve()
-            .body<JsonPlaceHolder>()} returns requestBody
 
-        val postResponse = jsonPlaceHolderService.savePost(requestBody)
+        mockServer.expect(requestTo("https://jsonplaceholder.org/posts"))
+            .andExpect(content().string(objectMapper.writeValueAsString(expected)))
+        .andRespond(withSuccess())
 
-        assertEquals(postResponse, requestBody)
-        verify(exactly = 1) { mockRestClientBuilder.build().post().uri("https://jsonplaceholder.org/posts")}
+        jsonPlaceHolderClient.savePost(expected)
+
+        mockServer.verify()
     }
-}
 
+}
